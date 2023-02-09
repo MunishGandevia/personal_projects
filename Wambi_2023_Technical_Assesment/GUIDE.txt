@@ -1,0 +1,39 @@
+question 2
+
+-add date object to the dataframe using the conversion
+-make a for loop
+	-for each record in dataframe, if the month is june, add volume to a running total, increment count
+	-divide total volume of trades in june by total count of days
+
+Question 3 
+	-find record for first day and last day of the month , compare first's open and last's close
+	-to find first of the month:
+		-use https://stackoverflow.com/questions/403421/how-to-sort-a-list-of-objects-based-on-an-attribute-of-the-objects
+		to sort the object inside each month by the day
+		-find the first/last record and store in a variable
+
+Question 4
+	-create a new column in the dataframe abs(high - low) 
+	-seperate the records into months by creating a key thats a DD-MM 
+	-create a list of records organized by months
+	-split out each month into corresponding records based on key
+		-for loop within a for loop
+	
+		for month in months:	
+			maxvolume = 0
+			maxintradaychange = 0
+			
+			for day in month:
+			if volume(day) > maxvolume then maxvolume = day['Volume']
+								  maxVolumeDay = day['Date']
+			if  [high-low] > 1.5 then maxintradaychange = day['Volume']
+								maxintradaychange = day['Change']
+								maxintradaychangeDay = day['Date']
+	-save the results to a list or dataframe object to print
+
+question - day with the highest intra day change might not have the highest volume
+		
+
+Question 5
+	-create a column in df called profit where its high-low
+	
