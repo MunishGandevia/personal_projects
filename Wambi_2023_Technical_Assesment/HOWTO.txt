@@ -1,0 +1,2 @@
+-Run main.py
+-outputs results to Desktop under Results.txt
