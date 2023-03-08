@@ -1,0 +1,79 @@
+/*        Question 1        */
+
+SELECT
+  COUNT(DISTINCT(fullVisitorId)) AS Unique_Users, --from the documentation 
+  COUNT(hits) AS Events, 
+  COUNT(DISTINCT(CONCAT(CAST(fullvisitorid AS string),CAST(visitid AS string)))) AS Sessions, --combine fullvisitorid and visitid to create a unique session 
+  h.hour AS Hits_Hour --grab the hour that the session occured
+FROM
+  `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`,
+  UNNEST(hits) AS h
+GROUP BY --allows us to see what the values are by hour
+  h.hour 
+ORDER BY
+  h.hour ASC;
+
+/*        Question 2        */
+
+SELECT
+  p.v2ProductCategory AS ProductCategory, --grab the product category
+  COUNT(fullVisitorId) AS Users -- count of users
+FROM
+  `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`,
+  UNNEST(hits) AS h, --took me a minute to figure out how to query but the example made it straight foward
+  UNNEST(h.product) AS p --have to unnest to get the relevant product info
+WHERE
+  h.eventInfo.eventAction IN ('Quickview Click',
+    'Product Click',
+    'Promotion Click')
+  AND h.type = 'EVENT'
+GROUP BY
+  ProductCategory
+ORDER BY
+  Users DESC;
+
+/*        Question 3        */
+
+SELECT
+  COUNT(DISTINCT(CONCAT(CAST(fullvisitorid AS string),CAST(visitid AS string)))) AS Sessions, --used same method as in Question 1
+  CASE
+    WHEN totals.transactions > 0 THEN 'Purchased'
+  ELSE
+  'Not Purchased'
+END -- needed a way to group the transaction results into two buckets, took a minute to figure out how to access totals.transactions, then realizing how to compare with a string
+  AS Transaction_Result
+FROM
+  `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`,
+  UNNEST(hits) AS h
+WHERE
+  h.eventInfo.eventAction = 'Add to Cart' --per the criteria in the question
+GROUP BY
+  Transaction_Result; --grouped by Transaction_Result
+
+/*        Question 4        */
+
+SELECT
+  COUNT(DISTINCT(CONCAT(CAST(fullvisitorid AS string),CAST(visitid AS string)))) AS Sessions, --sessions
+  ROUND(AVG(totals.sessionQualityDim),2) AS AvgSessionQuality, --grabs average sessionqualitydim per grouping
+  ROUND(AVG(totals.timeOnSite) / 60,2) AS AvgTimeonSite_Mins, --time on site expressed in seconds , need to divide by 60 to get minutes
+  COUNT(totals.visits) AS Visits, --total visits
+  COUNT(totals.newVisits) AS NewVisits, --unique visits per group
+  ROUND(COUNT(totals.newVisits) / COUNT(totals.visits) * 100, 2) AS UniqueVistorPercentage, --percentage of visits that are unique
+  100 - (ROUND(COUNT(totals.newVisits) / COUNT(totals.visits) * 100, 2)) AS RepeatVistorPercentage, --percentage of visits that are repeat
+  CASE
+    WHEN totals.transactions > 0 THEN 'Purchased'
+  ELSE
+  'Not Purchased' --same logic to get purchased/not purchased
+END
+  AS Transaction_Result,
+  device.isMobile AS MobileDevice, -- to see how many visits were from mobile vs pc 
+FROM
+  `bigquery-public-data.google_analytics_sample.ga_sessions*`,
+  UNNEST(hits) AS hits
+WHERE
+  hits.eventInfo.eventAction = 'Add to Cart'
+GROUP BY
+  Transaction_Result,
+  MobileDevice
+ORDER BY
+  MobileDevice;
